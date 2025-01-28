@@ -54,4 +54,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 If you have any questions or feedback, feel free to contact me at [jingle1216@gmail.com].
 
 ## Buy me coffee
-[ko-fi/jinglebot] (https://ko-fi.com/jinglebot)
+[ko-fi/jinglebot](https://ko-fi.com/jinglebot)
