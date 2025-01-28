@@ -4,7 +4,6 @@ const winnerDisplay = document.getElementById('winner');
 let currentPlayer = 'X';
 let board = ['', '', '', '', '', '', '', '', ''];
 let gameHistory = {};
-let playerHistory = [];
 let gameOver = false;
 
 // Initialize game history with empty board states
@@ -39,11 +38,9 @@ function makeMove(cell, index) {
     cell.textContent = currentPlayer;
     cell.style.color = currentPlayer === 'X' ? '#FF4500' : '#1E90FF'; // Change colors: OrangeRed for X and DodgerBlue for O
     board[index] = currentPlayer;
-    playerHistory.push(board.join(''));
 
     if (checkWinner()) {
         gameOver = true;
-        updateGameHistory(currentPlayer); // Pass current player to updateGameHistory
         setTimeout(() => {
             winnerDisplay.textContent = `Player ${currentPlayer} wins!`;
             startButton.classList.remove('hidden'); // Show the Start Game button again
@@ -51,7 +48,6 @@ function makeMove(cell, index) {
         return; // Return early to prevent switching players after winning move
     } else if (board.every(cell => cell !== '')) {
         gameOver = true;
-        updateGameHistory(null); // Pass null to indicate a draw
         setTimeout(() => {
             winnerDisplay.textContent = 'It\'s a draw!';
             startButton.classList.remove('hidden'); // Show the Start Game button again
@@ -62,50 +58,82 @@ function makeMove(cell, index) {
 }
 
 function makeAIMove() {
-    const emptyCells = board.map((value, index) => value === '' ? index : null).filter(value => value !== null);
-    const currentBoardState = board.join('');
+    const bestMove = findBestMove(board);
+    const aiCell = cells[bestMove];
+    makeMove(aiCell, bestMove);
+}
 
-    if (!gameHistory[currentBoardState]) {
-        gameHistory[currentBoardState] = { wins: 0, losses: 0, draws: 0 };
-    }
-
-    let bestMoveIndex = emptyCells[0];
+function findBestMove(board) {
     let bestScore = -Infinity;
+    let move;
 
-    // Evaluate possible moves
-    emptyCells.forEach(index => {
-        board[index] = 'O';
-        const newBoardState = board.join('');
-        if (!gameHistory[newBoardState]) {
-            gameHistory[newBoardState] = { wins: 0, losses: 0, draws: 0 };
-        }
-        let score = gameHistory[newBoardState].wins - gameHistory[newBoardState].losses;
-
-        // Adjust score based on player's history
-        playerHistory.forEach(playerMove => {
-            if (playerMove === newBoardState) {
-                score -= 1; // Reduce score if the player has previously made this move
+    board.forEach((cell, index) => {
+        if (cell === '') {
+            board[index] = 'O';
+            let score = minimax(board, 0, false);
+            board[index] = '';
+            if (score > bestScore) {
+                bestScore = score;
+                move = index;
             }
-        });
-
-        board[index] = '';
-
-        if (score > bestScore) {
-            bestScore = score;
-            bestMoveIndex = index;
         }
     });
 
-    // Randomize the move selection to avoid repetitive patterns
-    bestMoveIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+    return move;
+}
 
-    const aiCell = cells[bestMoveIndex];
-    makeMove(aiCell, bestMoveIndex);
+function minimax(board, depth, isMaximizing) {
+    const winner = checkWinnerMinimax(board);
+    if (winner !== null) {
+        return winner === 'O' ? 10 - depth : depth - 10;
+    } else if (board.every(cell => cell !== '')) {
+        return 0; // Draw
+    }
+
+    if (isMaximizing) {
+        let bestScore = -Infinity;
+        board.forEach((cell, index) => {
+            if (cell === '') {
+                board[index] = 'O';
+                let score = minimax(board, depth + 1, false);
+                board[index] = '';
+                bestScore = Math.max(score, bestScore);
+            }
+        });
+        return bestScore;
+    } else {
+        let bestScore = Infinity;
+        board.forEach((cell, index) => {
+            if (cell === '') {
+                board[index] = 'X';
+                let score = minimax(board, depth + 1, true);
+                board[index] = '';
+                bestScore = Math.min(score, bestScore);
+            }
+        });
+        return bestScore;
+    }
+}
+
+function checkWinnerMinimax(board) {
+    const winningCombinations = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8],
+        [0, 3, 6], [1, 4, 7],
+        [2, 5, 8], [0, 4, 8], [2, 4, 6]
+    ];
+
+    for (const combination of winningCombinations) {
+        const [a, b, c] = combination;
+        if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+            return board[a];
+        }
+    }
+
+    return null;
 }
 
 function restartGame() {
     board = ['', '', '', '', '', '', '', '', ''];
-    playerHistory = []; // Clear player history
     cells.forEach(cell => {
         cell.textContent = '';
         cell.style.color = ''; // Reset color
@@ -113,20 +141,6 @@ function restartGame() {
     winnerDisplay.textContent = ''; // Clear winner display
     currentPlayer = 'X';
     gameOver = false;
-}
-
-function updateGameHistory(winner) {
-    const boardState = board.join('');
-    if (!gameHistory[boardState]) {
-        gameHistory[boardState] = { wins: 0, losses: 0, draws: 0 };
-    }
-    if (winner === 'X') {
-        gameHistory[boardState].wins += 1; // Increment wins for X
-    } else if (winner === 'O') {
-        gameHistory[boardState].losses += 1; // Increment losses for O
-    } else if (winner === null) {
-        gameHistory[boardState].draws += 1;
-    }
 }
 
 function checkWinner() {
