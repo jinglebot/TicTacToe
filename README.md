@@ -28,7 +28,7 @@ The AI opponent uses the Minimax algorithm to make strategic moves. This ensures
 
 ## Live Demo
 
-Check out the live demo of the game at: [GitHub Pages](https://jinglebot.github.io/TicTacToe/) 
+Check out the live demo of the game at: [TicTacToe by jinglebot](https://jinglebot.github.io/TicTacToe/) 
 
 ## Installation
 
