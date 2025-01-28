@@ -96,6 +96,9 @@ function makeAIMove() {
         }
     });
 
+    // Randomize the move selection to avoid repetitive patterns
+    bestMoveIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+
     const aiCell = cells[bestMoveIndex];
     makeMove(aiCell, bestMoveIndex);
 }
